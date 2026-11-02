@@ -1,0 +1,62 @@
+# Assignment 5 — K-Means / Hierarchical Clustering
+
+## Problem Statement
+Implement K-Means clustering / hierarchical clustering on sales_data_sample.csv dataset. Determine the number of clusters using the elbow method.
+
+Dataset: [Sample Sales Data Dataset (Kaggle)](https://www.kaggle.com/datasets/kyanyoga/sample-sales-data)
+
+## Explanation
+
+Clustering is **unsupervised learning** — there are no labels; the goal is to group similar data points together based purely on feature similarity.
+
+**Features used:** `QUANTITYORDERED`, `PRICEEACH`, `SALES`, `MSRP` — all standardized (`StandardScaler`) first, since K-Means relies on Euclidean distance and unscaled features (e.g. `SALES` in thousands vs `QUANTITYORDERED` in tens) would distort distance calculations.
+
+**K-Means clustering**
+1. Pick `k` (number of clusters).
+2. Randomly initialize `k` cluster centroids.
+3. Assign every point to its nearest centroid.
+4. Recompute each centroid as the mean of its assigned points.
+5. Repeat steps 3–4 until centroids stop moving (convergence).
+
+**Choosing k — the Elbow Method**
+K-Means is run for `k = 1` to `10`, recording the **inertia** (sum of squared distances from each point to its assigned centroid — lower inertia means tighter, more compact clusters). As `k` increases, inertia always decreases (more clusters = tighter fit), but with diminishing returns. Plotting inertia vs `k` produces a curve that bends like an elbow — the `k` at that bend is chosen because adding more clusters past that point gives only marginal improvement for the added complexity. This code automates the pick using the point of maximum curvature (second difference) in the inertia curve.
+
+**Hierarchical clustering** (included for comparison)
+Uses `linkage` with `ward` method to build a tree of nested clusters (a **dendrogram**) by repeatedly merging the two closest clusters, starting from each point as its own cluster. `fcluster` then cuts this tree at a height corresponding to the chosen `k` to produce flat cluster labels, comparable to K-Means' output.
+
+## Complexity
+
+- **K-Means:** Time ≈ O(n × k × i × d) where n = points, k = clusters, i = iterations until convergence, d = dimensions. Space O(n + k).
+- **Hierarchical (agglomerative):** Time O(n² log n) typically, Space O(n²) (due to the pairwise distance matrix) — noticeably more expensive than K-Means, which is why it doesn't scale as well to large datasets.
+
+## Viva Questions & Answers
+
+**Q1. Why must features be standardized before K-Means?**
+K-Means groups points based on Euclidean distance. If one feature has a much larger numeric range than others (e.g. SALES in thousands vs QUANTITYORDERED in tens), it would dominate the distance calculation and effectively make the other features irrelevant to clustering — standardizing puts all features on equal footing.
+
+**Q2. What is "inertia" in K-Means, and why does it always decrease as k increases?**
+Inertia is the sum of squared distances between each point and its assigned cluster centroid. As k increases, each cluster becomes smaller and tighter (more centroids to "absorb" variance), so inertia mechanically decreases — down to zero when k = number of points (every point is its own cluster).
+
+**Q3. Why not just pick the k with the lowest inertia?**
+Because inertia keeps decreasing all the way to k = n (trivial, meaningless clustering). The elbow method instead looks for the point of diminishing returns — where adding more clusters barely reduces inertia further — balancing cluster quality against unnecessary complexity.
+
+**Q4. How does K-Means decide which cluster a point belongs to?**
+Each point is assigned to the cluster whose centroid is closest to it (by Euclidean distance, after standardization), and this assignment is recomputed every iteration as centroids move.
+
+**Q5. Why can K-Means converge to different results on different runs?**
+Centroids are initialized randomly, and K-Means can converge to different local optima depending on that random starting point — this is why `n_init=10` is used here, running the algorithm 10 times with different initializations and keeping the best (lowest-inertia) result.
+
+**Q6. What is the key difference between K-Means and hierarchical clustering?**
+K-Means requires you to specify `k` upfront and produces a flat partition of the data. Hierarchical clustering builds a full tree (dendrogram) of nested clusters without needing `k` in advance — you choose `k` afterward by "cutting" the tree at the desired level, and you can inspect the whole merge hierarchy, not just one flat result.
+
+**Q7. What does the dendrogram show, and how do you read it?**
+It shows the order and distance at which clusters were merged, visualized as a tree — the y-axis represents the distance/dissimilarity at which two clusters were joined. Cutting the tree horizontally at some height gives you that many clusters; a taller vertical gap before a merge suggests a natural, meaningful separation point.
+
+**Q8. What does Ward's linkage method minimize when merging clusters?**
+It merges the pair of clusters that results in the smallest increase in total within-cluster variance (sum of squared deviations from the cluster mean) — tending to produce compact, similarly-sized clusters, similar in spirit to what K-Means optimizes.
+
+**Q9. Why is K-Means generally preferred over hierarchical clustering for large datasets?**
+K-Means scales roughly linearly with the number of points per iteration, while hierarchical clustering typically requires computing and storing a full pairwise distance matrix (O(n²) space, O(n² log n) time) — this becomes impractical for large n.
+
+**Q10. What is a key limitation of K-Means regarding cluster shape?**
+K-Means assumes clusters are roughly spherical/convex and similarly sized, since it partitions based on distance to a single centroid — it struggles with elongated, irregularly shaped, or very differently-sized clusters, where density-based methods like DBSCAN often perform better.

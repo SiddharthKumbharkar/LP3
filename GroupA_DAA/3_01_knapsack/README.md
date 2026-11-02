@@ -1,0 +1,63 @@
+# Assignment 3 — 0/1 Knapsack Problem (DP & Branch and Bound)
+
+## Problem Statement
+Write a program to solve a 0-1 Knapsack problem using dynamic programming or branch and bound strategy.
+
+## Explanation
+
+Given `n` items, each with a weight and a value, and a knapsack with a maximum weight **capacity**, choose a subset of items that maximizes total value without exceeding the capacity. "0/1" means each item is either fully taken or fully left behind — no fractional items (unlike the Fractional Knapsack, which is solved greedily).
+
+**Dynamic Programming approach (`knapsack_dp`)**
+Builds a 2D table `dp[i][w]` = the best value achievable using the first `i` items with capacity `w`.
+- If item `i` doesn't fit in the remaining weight `w`, `dp[i][w] = dp[i-1][w]` (skip it).
+- Otherwise, take the better of skipping it (`dp[i-1][w]`) or including it (`values[i-1] + dp[i-1][w - weights[i-1]]`).
+- The final answer is `dp[n][capacity]`.
+This guarantees the optimal solution because every subproblem is solved exactly once and reused.
+
+**Branch and Bound approach (`knapsack_branch_bound`)**
+Explores the decision tree of "include item / exclude item" choices via recursion, but **prunes** branches that cannot possibly beat the best value found so far:
+- At every node, it computes an optimistic upper bound (`remaining_value` = current value + sum of all remaining items' values, assuming — unrealistically but safely — that they could all still be added).
+- If that upper bound is no better than the current `best_value`, the branch is abandoned — no need to explore further.
+- Otherwise it recurses into both "include this item" and "exclude this item".
+This still has an exponential worst case (O(2^n)) but in practice explores far fewer nodes than brute force because weak branches get cut early.
+
+## Complexity
+
+| Approach            | Time                          | Space                          |
+|----------------------|-------------------------------|---------------------------------|
+| Dynamic Programming  | O(n × W)                      | O(n × W) — the DP table         |
+| Branch and Bound     | O(2^n) worst case, less in practice | O(n) — recursion call stack |
+
+(`n` = number of items, `W` = knapsack capacity)
+
+## Viva Questions & Answers
+
+**Q1. Why is this called "0/1" knapsack?**
+Because each item can either be included (1) or excluded (0) entirely — you cannot take a fraction of an item, unlike the Fractional Knapsack problem.
+
+**Q2. Why can't the Fractional Knapsack's greedy (value/weight ratio) approach be used here?**
+Greedy by ratio works for the fractional version because you can always fill remaining capacity with a partial item. In 0/1 Knapsack, a high-ratio item might not fit at all, so greedy choices can lock you into a suboptimal overall selection — hence DP or Branch and Bound is needed for a provably optimal answer.
+
+**Q3. What does `dp[i][w]` represent in the DP table?**
+The maximum value achievable using only the first `i` items with a knapsack capacity of `w`.
+
+**Q4. Why is the DP approach guaranteed to be optimal?**
+Because it considers both choices (include/exclude) for every item at every capacity level and always keeps the better one — it's an exhaustive, memoized exploration of the whole solution space without redundant recomputation.
+
+**Q5. What is the time/space complexity of the DP approach and why is it called "pseudo-polynomial"?**
+O(n × W) time and space. It's pseudo-polynomial because the complexity depends on the *value* of W (the capacity), not just the input size (number of items) — for very large W, this can become expensive even though n is small.
+
+**Q6. How does Branch and Bound decide which branches to prune?**
+It computes an upper bound on the best value obtainable from the current partial solution. If that upper bound is still worse than the best complete solution found so far, there's no point exploring that branch further, so it's cut.
+
+**Q7. Is the bound used in this implementation tight or loose, and what's the trade-off?**
+It's a loose bound (sum of all remaining values, ignoring weight), which is simple and cheap to compute but prunes less aggressively than the tighter fractional-knapsack-based bound. Looser bounds mean more nodes get explored, but each bound computation is faster.
+
+**Q8. What is the worst-case time complexity of Branch and Bound, and when does it occur?**
+O(2^n), occurring when the bound never falls below the running best value, forcing exploration of (nearly) every possible include/exclude combination — effectively degrading to brute force.
+
+**Q9. How would you reconstruct *which* items were selected from the DP table?**
+By backtracking from `dp[n][capacity]`: at each step, if `dp[i][w] != dp[i-1][w]`, item `i-1` was included — move to `dp[i-1][w - weights[i-1]]`; otherwise it was excluded — move to `dp[i-1][w]`. Repeat until `i` reaches 0.
+
+**Q10. Why is 0/1 Knapsack considered NP-hard, and how does DP get around that?**
+Brute-force requires checking all 2^n subsets. DP exploits optimal substructure and overlapping subproblems (bounded by capacity) to solve it in pseudo-polynomial time instead — it's not a true polynomial-time algorithm because of the W-dependence, but it's efficient for reasonable capacities.

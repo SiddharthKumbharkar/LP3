@@ -1,0 +1,60 @@
+# Assignment 5 — Quick Sort: Deterministic vs Randomized
+
+## Problem Statement
+Write a program for analysis of Quick sort by using deterministic and randomized variants.
+
+## Explanation
+
+Quick Sort is a divide-and-conquer sorting algorithm:
+1. Pick a **pivot** element.
+2. **Partition** the array so everything ≤ pivot ends up to its left, and everything > pivot ends up to its right (the pivot lands in its final sorted position).
+3. Recursively sort the left and right sub-arrays.
+
+**`partition(arr, low, high, pivot_index)`** — the core operation. It swaps the chosen pivot to the end (`high`), then scans from `low` to `high-1`, moving every element `≤ pivot` to the front (tracked by index `i`). Finally the pivot is swapped into its correct sorted position (`i+1`), which is returned.
+
+**Deterministic quicksort (`deterministic_sort`)** — always uses the **last element** of the current sub-array as the pivot.
+
+**Randomized quicksort (`randomized_sort`)** — picks a **random index** within the current sub-array as the pivot before partitioning, using `random.randint(low, high)`.
+
+**Why this matters:** if the input is already sorted (or reverse sorted) and you always pick the last element as pivot, every partition splits the array into a size-0 and a size-(n-1) piece — the worst possible split, degrading to O(n²). Randomizing the pivot choice makes this adversarial input irrelevant, since the pivot is no longer tied to the array's existing order — on average it still splits roughly evenly, keeping expected time at O(n log n) regardless of input arrangement.
+
+The program demonstrates this directly: it times both variants on **random data**, **already-sorted data**, and **reverse-sorted data** — the deterministic version visibly slows down on the sorted/reverse-sorted cases, while the randomized version stays fast across all three.
+
+## Complexity
+
+| Variant       | Average Time | Worst Case Time | Space (recursion stack) |
+|---------------|--------------|------------------|---------------------------|
+| Deterministic | O(n log n)   | O(n²) — triggered by sorted/reverse-sorted input | O(log n) avg, O(n) worst |
+| Randomized    | O(n log n)   | O(n²) — theoretically possible but extremely unlikely | O(log n) avg, O(n) worst |
+
+## Viva Questions & Answers
+
+**Q1. Why does the deterministic version perform badly on sorted input?**
+Always choosing the last element as pivot on already-sorted data means the pivot is always the maximum of the current range — partition splits it into one empty side and one side with everything else, giving the worst possible unbalanced recursion (O(n²)).
+
+**Q2. How does randomization fix this problem?**
+By picking the pivot uniformly at random, the pivot's value becomes independent of the input's existing order — so a sorted/reverse-sorted input is no more likely to cause bad splits than any other input. The expected split stays balanced, keeping expected time O(n log n).
+
+**Q3. Can the randomized version still hit O(n²) in the worst case?**
+Yes, theoretically — if you get extremely unlucky and keep picking near-worst pivots every time. But the *probability* of this is astronomically small for reasonable n, unlike the deterministic version where it's guaranteed on specific inputs.
+
+**Q4. What does the `partition` function actually do?**
+It rearranges the sub-array so every element ≤ the pivot comes before every element > the pivot, and returns the pivot's final index — this index is where the pivot now permanently sits in sorted order.
+
+**Q5. Is Quick Sort a stable sort?**
+No — swapping elements during partitioning can change the relative order of equal elements, so Quick Sort is not stable by default.
+
+**Q6. Why is Quick Sort generally preferred over Merge Sort despite the same average time complexity?**
+Quick Sort sorts in-place (O(log n) extra space vs Merge Sort's O(n)), and it has better cache locality / lower constant factors in practice, making it faster for typical in-memory sorting even though Merge Sort guarantees O(n log n) worst case.
+
+**Q7. What is the recursion depth in the best/average case vs worst case?**
+Best/average case: O(log n), since each partition roughly halves the array. Worst case: O(n), since an unbalanced split only reduces the problem size by 1 each time.
+
+**Q8. Why does `sys.setrecursionlimit(10000)` appear in the code?**
+Because the deterministic version's worst case (sorted/reverse-sorted input) recurses to a depth of n, and Python's default recursion limit (1000) would be hit and raise a `RecursionError` for larger inputs.
+
+**Q9. What other pivot-selection strategies exist besides "last element" and "random"?**
+First element, middle element, and median-of-three (comparing first, middle, and last elements and picking the median of those three) — median-of-three is popular because it resists many common worst-case patterns better than a single fixed position.
+
+**Q10. How would you empirically verify that randomized quicksort is more robust?**
+Exactly as this program does — time both variants on multiple input patterns (random, sorted, reverse sorted) and compare: if the randomized version's time stays roughly consistent across all patterns while the deterministic version spikes on sorted/reverse-sorted, that confirms the robustness claim.

@@ -1,0 +1,57 @@
+# Assignment 4 — Gradient Descent Algorithm
+
+## Problem Statement
+Implement Gradient Descent Algorithm to find the local minima of a function. For example, find the local minima of the function y = (x+3)² starting from the point x = 2.
+
+## Explanation
+
+**Gradient Descent** is an iterative optimization algorithm used to find the minimum of a function by repeatedly moving in the direction opposite to the function's gradient (slope) — since the gradient points toward the steepest *increase*, moving opposite to it decreases the function value.
+
+For `y = f(x) = (x+3)²`:
+- **Derivative**: `dy/dx = f'(x) = 2(x+3)` — tells you the slope of the curve at any point `x`.
+- **Update rule**: `x_new = x_old - learning_rate × f'(x_old)`
+
+**How it behaves:**
+- At `x = 2`, the slope `f'(2) = 2(5) = 10` is large and positive (function is increasing steeply), so the update moves `x` significantly to the left (toward smaller x).
+- As `x` approaches `-3` (the true minimum, where `f(-3) = 0`), the slope `f'(x)` approaches 0, so the steps naturally shrink — this is why gradient descent "slows down" and converges rather than overshooting indefinitely.
+- The **learning rate** (`0.1` here) controls step size: too large can overshoot or diverge; too small converges very slowly.
+- The loop stops either after a fixed number of iterations or once the change in `x` between steps (`tolerance`) becomes negligible — meaning convergence has effectively been reached.
+
+The code tracks the full `history` of `x` values and plots them on the curve `y = (x+3)²`, visually showing the path "rolling downhill" toward the minimum at `x = -3`.
+
+## Complexity
+
+- **Time:** O(k) where k = number of iterations until convergence (each iteration is O(1) work).
+- **Space:** O(k) to store the history of x-values (O(1) if only the final value is needed).
+
+## Viva Questions & Answers
+
+**Q1. Why does gradient descent move in the *negative* direction of the gradient?**
+The gradient points in the direction of steepest *increase* of the function. Since the goal is to minimize the function, moving in the opposite (negative) direction is what decreases the function value fastest at that point.
+
+**Q2. What is the role of the learning rate, and what happens if it's too large or too small?**
+It scales how big each update step is. Too large: the algorithm can overshoot the minimum and oscillate or even diverge (step size bigger than the "bowl" it needs to descend into). Too small: convergence becomes very slow, requiring many more iterations to reach the minimum.
+
+**Q3. Why does the function used here, y = (x+3)², have exactly one minimum?**
+It's a convex (upward-opening) parabola — a quadratic function with a single global minimum at its vertex, `x = -3`, where the derivative is zero and the function changes from decreasing to increasing.
+
+**Q4. How do you know gradient descent has converged in this implementation?**
+When the change between consecutive `x` values (`abs(new_x - x)`) drops below a small `tolerance` threshold — meaning further updates would be negligible, so the loop stops early instead of running all iterations.
+
+**Q5. What would happen if you started at x = -3 exactly?**
+The gradient `f'(-3) = 2(-3+3) = 0`, so the update step would be zero — the algorithm would immediately recognize it's already at the minimum and stay there (or converge on the very first check).
+
+**Q6. Why does gradient descent slow down as it approaches the minimum?**
+Because the gradient magnitude shrinks as `x` approaches the minimum (the slope flattens out near the vertex of the parabola) — since the step size is proportional to the gradient, smaller gradients naturally produce smaller steps.
+
+**Q7. Is this a local minimum or global minimum for this particular function, and why does it matter?**
+For this convex quadratic function, the local minimum found *is* the global minimum, since there's only one minimum overall. For more complex, non-convex functions, gradient descent can get stuck in a local minimum that isn't the best possible (global) solution — a key limitation to be aware of in real ML optimization (e.g. deep neural network training).
+
+**Q8. How does gradient descent relate to training machine learning models like the neural network in Assignment 3?**
+It's the same core idea: ML models minimize a loss function (e.g. binary cross-entropy) with respect to their parameters (weights), using the gradient of the loss to iteratively update weights in the direction that reduces error — gradient descent (and variants like Adam) is the backbone optimizer behind virtually all neural network training.
+
+**Q9. What is the difference between gradient descent and stochastic gradient descent (SGD)?**
+Standard (batch) gradient descent computes the gradient using the entire dataset per update. SGD computes it using a single sample (or Adam/mini-batch GD uses a small batch) per update — much faster per step and often converges quicker in practice for large datasets, at the cost of a noisier (less smooth) path to the minimum.
+
+**Q10. What could go wrong if the learning rate were set to, say, 1.5 for this function?**
+Since `f'(x) = 2(x+3)`, the update becomes `x_new = x - 1.5×2(x+3) = x - 3(x+3)`, which can overshoot past the minimum and oscillate with increasing magnitude, causing divergence rather than convergence — the algorithm would never settle near x = -3.

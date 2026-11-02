@@ -1,0 +1,60 @@
+# Assignment 4 — N-Queens (First Queen Fixed, Backtracking)
+
+## Problem Statement
+Design N-Queens matrix having first Queen placed. Use backtracking to place remaining Queens to generate the final N-queen.
+
+## Explanation
+
+The N-Queens problem asks: place `N` queens on an `N × N` chessboard so that **no two queens attack each other** — meaning no two queens share the same row, column, or diagonal.
+
+This assignment's twist: the **first queen's position is pre-decided** (given by the user), and the program must place the remaining `N-1` queens using **backtracking**.
+
+**Representation:** `board` is a list of length `N`, where `board[row] = col` means a queen is placed in that row at that column. One queen per row is enforced automatically since each row only stores a single column value.
+
+**`is_safe(board, row, col)`** — checks whether placing a queen at `(row, col)` is safe against every already-placed queen in earlier rows:
+- Same column: `c == col`
+- Same diagonal: `abs(c - col) == abs(r - row)` (row and column differences are equal)
+
+**`solve(board, row, n, first_row)`** — the backtracking recursion:
+- If `row == n`, all queens are placed successfully — return `True`.
+- If this `row` is the one where the first queen was already fixed, skip straight to the next row.
+- Otherwise, try every column in this row; if `is_safe` allows it, place the queen and recurse to the next row.
+- If the recursive call fails (returns `False`), **undo** the placement (`board[row] = -1`) and try the next column — this undo step is the "backtrack".
+- If no column works for this row, return `False`, forcing the previous row to backtrack too.
+
+## Complexity
+
+- **Time:** O(N!) worst case — at row 0 there are up to N choices, row 1 has up to N-1 remaining safe choices, and so on; backtracking prunes unsafe branches early but the worst case is still factorial.
+- **Space:** O(N) — the `board` array plus the recursion call stack, both proportional to N.
+
+## Viva Questions & Answers
+
+**Q1. What does "backtracking" mean in this context?**
+It means trying a choice (placing a queen in a column), recursing forward, and if that leads to a dead end, undoing the choice and trying the next option — systematically exploring the solution space while abandoning ("pruning") paths that can't lead to a valid solution.
+
+**Q2. Why check only rows *before* the current row in `is_safe`?**
+Because queens are placed one row at a time, top to bottom — by the time we're deciding row `r`, every row before it already has a confirmed queen, and rows after it are still empty, so there's nothing to check there yet.
+
+**Q3. How are diagonal attacks detected?**
+Two queens attack diagonally if the absolute difference in their row indices equals the absolute difference in their column indices (`abs(r1-r2) == abs(c1-c2)`) — this covers both the "/" and "\" diagonal directions.
+
+**Q4. Why is one queen per row sufficient to guarantee row-uniqueness?**
+Because the board representation stores exactly one column value per row — by construction, two queens can never land in the same row since each row has only one slot.
+
+**Q5. What is the worst-case time complexity and why?**
+O(N!), because the number of ways to place queens row by row (even before checking safety) resembles a permutation count, and in the worst case backtracking explores a large fraction of that space before finding a solution or proving none exists.
+
+**Q6. What does "undoing" a placement (`board[row] = -1`) achieve?**
+It resets that row to empty before trying the next candidate column, ensuring `is_safe` checks for the next attempt aren't polluted by a placement that didn't lead to a solution.
+
+**Q7. Why might placing the first queen at certain positions make the puzzle unsolvable?**
+For small boards (e.g. N=4 or N=5), certain early placements can block off every valid continuation given the remaining constraints — the backtracking search will exhaust every column in every row without success, and `solve` returns `False`, meaning no solution exists from that starting placement.
+
+**Q8. How would you count *all* possible solutions instead of stopping at the first one?**
+Instead of returning `True`/`False` immediately upon finding one full placement, keep a counter, don't return early when `row == n` — instead increment the counter and keep backtracking to explore other placements.
+
+**Q9. Is backtracking here a brute-force algorithm?**
+Not pure brute force — brute force would try all N^N combinations blindly. Backtracking prunes a branch the moment it violates a constraint (`is_safe` fails), avoiding wasted exploration of hopeless sub-trees — this is strictly better than brute force while still being exponential in the worst case.
+
+**Q10. What is the recursion's base case here?**
+`row == n` — meaning queens have been successfully placed in every row (0 to n-1) without conflicts, so the board is a complete valid solution.

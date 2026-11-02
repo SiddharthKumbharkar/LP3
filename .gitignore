@@ -1,0 +1,21 @@
+# Large Kaggle datasets (download via the links in each assignment's README)
+GroupB_ML/1_uber_fare_prediction/uber.csv
+GroupB_ML/2_email_spam_classification/emails.csv
+
+# Official signed/scanned college documents
+1. Signed BE Comp Sem-I LP-III List of Lab Experiment AY 2026-27.pdf
+3. Signed BE Comp Sem-I LP-III Lab Manual 2026-27 (1).pdf
+
+# Solidity compiler output
+*.abi
+*.bin
+
+# OS / editor junk
+.DS_Store
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Python envs
+.venv/
+venv/
