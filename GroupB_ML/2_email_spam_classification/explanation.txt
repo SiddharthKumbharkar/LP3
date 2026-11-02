@@ -1,52 +1,57 @@
-# Assignment 2 — Email Spam Classification
+ASSIGNMENT 2 — EMAIL SPAM CLASSIFICATION
+========================================
 
-## Problem Statement
+Problem Statement
+-----------------
+
 Classify the email using the binary classification method. Email Spam detection has two states: a) Normal State — Not Spam, b) Abnormal State — Spam. Use K-Nearest Neighbors and Support Vector Machine for classification. Analyze their performance.
 
-Dataset: [Email Spam Classification Dataset (Kaggle)](https://www.kaggle.com/datasets/balaka18/email-spam-classification-dataset-csv)
+Dataset: Email Spam Classification Dataset (Kaggle) (https://www.kaggle.com/datasets/balaka18/email-spam-classification-dataset-csv)
 
-## Explanation
+Explanation
+-----------
 
-This is a **binary classification** problem — every email belongs to one of two classes: `0` (Not Spam) or `1` (Spam). The dataset represents each email as a row of **word-count features** (how many times specific words appear) plus a `Prediction` label column.
+This is a binary classification problem — every email belongs to one of two classes: 0 (Not Spam) or 1 (Spam). The dataset represents each email as a row of word-count features (how many times specific words appear) plus a Prediction label column.
 
-**Pipeline:**
-1. Load the dataset, drop identifier columns (like `Email No.`) that carry no predictive signal.
-2. Split features (`X`, the word counts) from the target (`y`, the spam/not-spam label).
-3. Train/test split (80/20), **stratified** on `y` so both sets preserve the same spam/not-spam ratio as the full dataset.
-4. **Standardize** features (`StandardScaler`) — rescales each word-count column to zero mean/unit variance. This matters a lot for KNN and SVM since both are distance/margin-based and sensitive to feature scale (a feature with a huge raw range would otherwise dominate the distance calculation).
+Pipeline:
+1. Load the dataset, drop identifier columns (like Email No.) that carry no predictive signal.
+2. Split features (X, the word counts) from the target (y, the spam/not-spam label).
+3. Train/test split (80/20), stratified on y so both sets preserve the same spam/not-spam ratio as the full dataset.
+4. Standardize features (StandardScaler) — rescales each word-count column to zero mean/unit variance. This matters a lot for KNN and SVM since both are distance/margin-based and sensitive to feature scale (a feature with a huge raw range would otherwise dominate the distance calculation).
 5. Train two classifiers:
-   - **K-Nearest Neighbors (KNN)** — classifies a new email by looking at the `k` most similar emails (by distance in feature space) in the training set and taking a majority vote of their labels. `k=5` is used here.
-   - **Support Vector Machine (SVM)** — finds the decision boundary (hyperplane) that best separates the two classes with maximum margin; an RBF kernel is used to allow non-linear boundaries.
+   - K-Nearest Neighbors (KNN) — classifies a new email by looking at the k most similar emails (by distance in feature space) in the training set and taking a majority vote of their labels. k=5 is used here.
+   - Support Vector Machine (SVM) — finds the decision boundary (hyperplane) that best separates the two classes with maximum margin; an RBF kernel is used to allow non-linear boundaries.
 6. Evaluate both with accuracy, a full classification report (precision/recall/F1), and a confusion matrix (also plotted).
 
-## Viva Questions & Answers
+Viva Questions & Answers
+------------------------
 
-**Q1. Why is feature scaling (StandardScaler) important for KNN and SVM but not, say, Decision Trees?**
+Q1. Why is feature scaling (StandardScaler) important for KNN and SVM but not, say, Decision Trees?
 KNN relies on distance calculations and SVM relies on margins — both are directly affected by the scale of each feature. A feature ranging 0–1000 would dominate a feature ranging 0–1 in distance calculations. Decision Trees split on thresholds per feature independently, so scale doesn't affect their splits.
 
-**Q2. What does `k` mean in KNN, and what happens if it's too small or too large?**
-`k` is the number of nearest neighbors consulted for the majority vote. Too small (e.g. k=1) makes the model sensitive to noise/outliers (overfitting); too large makes it overly smooth and can blur the decision boundary between classes (underfitting), potentially including irrelevant far-away points.
+Q2. What does k mean in KNN, and what happens if it's too small or too large?
+k is the number of nearest neighbors consulted for the majority vote. Too small (e.g. k=1) makes the model sensitive to noise/outliers (overfitting); too large makes it overly smooth and can blur the decision boundary between classes (underfitting), potentially including irrelevant far-away points.
 
-**Q3. What is the role of the kernel in SVM, and why use RBF here?**
+Q3. What is the role of the kernel in SVM, and why use RBF here?
 The kernel defines how similarity/distance is computed implicitly in a transformed (often higher-dimensional) feature space, letting SVM find non-linear decision boundaries without explicitly computing that transformation. RBF (Radial Basis Function) is a common default choice that can model complex, non-linear class boundaries.
 
-**Q4. Why use stratified train/test split instead of a plain random split?**
+Q4. Why use stratified train/test split instead of a plain random split?
 Stratification preserves the same class proportion (spam vs not-spam ratio) in both train and test sets — important when classes are imbalanced, so the test set is a representative sample and evaluation isn't skewed by a lucky/unlucky split.
 
-**Q5. What do precision and recall mean in the context of spam detection?**
+Q5. What do precision and recall mean in the context of spam detection?
 Precision = of emails predicted spam, how many actually were spam (high precision = few false alarms, legitimate emails rarely misclassified as spam). Recall = of all actual spam emails, how many were correctly caught (high recall = few spam emails slip through). There's typically a trade-off between the two.
 
-**Q6. Why might high recall be more important than high precision for spam filters (or vice versa)?**
+Q6. Why might high recall be more important than high precision for spam filters (or vice versa)?
 In practice, precision is often prioritized — a false positive (a real email marked spam) can mean a user misses something important, which is worse than an occasional spam email slipping into the inbox. The right balance depends on the application's tolerance for each error type.
 
-**Q7. What is a confusion matrix and what does each cell represent?**
+Q7. What is a confusion matrix and what does each cell represent?
 A 2×2 table for binary classification: true negatives (correctly not-spam), false positives (not-spam misclassified as spam), false negatives (spam misclassified as not-spam), and true positives (correctly spam) — it's the raw basis from which accuracy, precision, and recall are all computed.
 
-**Q8. Why might SVM outperform KNN on high-dimensional word-count data (or vice versa)?**
+Q8. Why might SVM outperform KNN on high-dimensional word-count data (or vice versa)?
 SVM tends to handle high-dimensional, sparse feature spaces (common in text data) well because it focuses on the margin/support vectors rather than every point. KNN's distance calculations can become less meaningful in high dimensions ("curse of dimensionality"), where distances between points start to look similar regardless of class.
 
-**Q9. What does "binary classification" mean, and how does it differ from multi-class classification?**
+Q9. What does "binary classification" mean, and how does it differ from multi-class classification?
 Binary classification has exactly two possible output classes (spam/not-spam here). Multi-class classification has three or more possible classes (e.g. classifying emails as personal/work/spam/promotions).
 
-**Q10. How would you handle a dataset where 95% of emails are not spam and only 5% are spam?**
+Q10. How would you handle a dataset where 95% of emails are not spam and only 5% are spam?
 This is class imbalance — accuracy alone becomes misleading (predicting "not spam" always would give 95% accuracy but 0% recall on spam). Techniques include stratified sampling, oversampling the minority class (e.g. SMOTE), class-weighted loss functions, and focusing evaluation on precision/recall/F1 rather than raw accuracy.

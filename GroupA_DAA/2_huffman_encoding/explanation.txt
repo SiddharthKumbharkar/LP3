@@ -1,0 +1,64 @@
+ASSIGNMENT 2 — HUFFMAN ENCODING (GREEDY STRATEGY)
+=================================================
+
+Problem Statement
+-----------------
+
+Write a program to implement Huffman Encoding using a greedy strategy.
+
+Explanation
+-----------
+
+Huffman coding is a lossless compression technique. Instead of giving every character a fixed-length code (like 8-bit ASCII), it assigns shorter codes to frequent characters and longer codes to rare characters, reducing the total number of bits needed.
+
+Steps implemented in huffman.py:
+
+1. get_frequency(text) — counts how many times each character occurs in the input.
+2. build_tree(freq) — the greedy core:
+   - Start with one leaf Node per character.
+   - Repeatedly pick the two nodes with the smallest frequency, remove them, and merge them under a new internal node whose frequency is their sum.
+   - Keep merging until only one node (the root) remains.
+   - Picking the two smallest at every step is the greedy choice — it's locally optimal and, for this problem, also produces a globally optimal prefix code.
+3. build_codes(node, code, codes) — walks the tree from the root; going left appends "0", going right appends "1". When a leaf is reached, the accumulated path is that character's code.
+4. The message is then encoded by replacing each character with its code and concatenated into one bitstream.
+
+Because every character sits at a leaf, no character's code is ever a prefix of another character's code — this is what makes it a valid prefix code and lets the decoder read the bitstream unambiguously, one code at a time, without needing separators.
+
+Complexity
+----------
+
+- Time: O(n²) in this implementation — building the tree does n-1 merges, and each merge scans the remaining node list twice to find the two smallest (a textbook-simple version; the standard min-heap-based implementation achieves O(n log n)).
+- Space: O(n) for the tree nodes and the code table (n = number of distinct characters).
+
+Viva Questions & Answers
+------------------------
+
+Q1. Why is Huffman coding called a "greedy" algorithm?
+At every step it makes the locally best choice — merging the two currently lowest-frequency nodes — without reconsidering past choices, and this sequence of local choices leads to a globally optimal (minimum total length) prefix code.
+
+Q2. What is a prefix code, and why does Huffman coding produce one?
+A prefix code is one where no character's code is a prefix of another's. Huffman codes are prefix codes because every character is stored only at a leaf node of the tree — you can never "pass through" one character's code to reach another's.
+
+Q3. Why do frequent characters get shorter codes?
+Frequent (high-frequency) nodes get merged later in the process, so they end up closer to the root — meaning fewer 0/1 steps from root to leaf, hence a shorter code.
+
+Q4. How is decoding done without special separators between codes?
+Because it's a prefix code, the decoder can walk the tree bit-by-bit from the root; the moment it reaches a leaf, it knows a full character has been found, resets to the root, and continues — no ambiguity, no separators needed.
+
+Q5. What data structure gives the most efficient implementation, and what complexity does it achieve?
+A min-heap (priority queue). Extracting the two minimum-frequency nodes and inserting the merged node each take O(log n), and this happens n-1 times, giving O(n log n) overall — compared to this assignment's simpler O(n²) linear-scan version.
+
+Q6. Is the Huffman code for a given input unique?
+Not always — if multiple characters tie in frequency, different tie-breaking orders can produce different (but equally optimal, i.e. same total length) trees.
+
+Q7. What is the compression ratio, and how is it calculated here?
+It's encoded size / original size, where original size assumes 8 bits per character and encoded size is the actual bit count of the Huffman-encoded message. A lower ratio means better compression.
+
+Q8. Can Huffman coding ever increase the size of the data?
+For very small inputs or nearly-uniform character frequencies, the overhead can make it not worth it, but for typical text with skewed character frequencies it reliably compresses.
+
+Q9. What are the two properties that justify a greedy approach works optimally here?
+Optimal substructure (an optimal tree for the full character set contains optimal sub-trees for the merged groups) and the greedy-choice property (always merging the two smallest frequencies never leads to a worse overall solution than any other merge order).
+
+Q10. What happens if the input text has only one distinct character?
+The tree has a single leaf as the root; it is force-coded as "0" (handled explicitly in build_codes) since there's no left/right split to walk.

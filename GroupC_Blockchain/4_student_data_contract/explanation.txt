@@ -1,0 +1,80 @@
+ASSIGNMENT 4 - STUDENT DATA SMART CONTRACT
+==========================================
+
+Problem Statement
+-----------------
+
+Write a program in solidity to create Student data. Use the following constructs: Structures, Arrays. Deploy this as a smart contract on Ethereum and observe the transaction fee and Gas values.
+
+Explanation
+-----------
+
+Student.sol stores student records on-chain using:
+- a struct StudentRecord { id, name, age, marks }
+- a dynamic array StudentRecord[] students holding all records
+
+- struct StudentRecord — a custom composite type bundling related fields (id, name, age, marks) together, similar to a class/record in other languages — lets one student be represented and passed around as a single unit.
+- StudentRecord[] private students — a dynamic array (grows as needed) stored permanently in contract storage; every element costs gas to write since it persists on-chain.
+- addStudent(...) — creates a new StudentRecord and pushes it onto the array; this is a state-changing (storage write) operation and costs gas. Emits a StudentAdded event.
+- getStudent(uint256 id) / getAllStudents() — view functions that read and return data without modifying state; free when called directly (no transaction needed), since no consensus/writing is involved.
+- totalStudents() — a simple view helper returning students.length.
+
+How to deploy (Remix + MetaMask on a test network)
+--------------------------------------------------
+
+1. Open Remix IDE (https://remix.ethereum.org) and create Student.sol
+   with the contract contents.
+2. Compile with Solidity 0.8.19 (or compatible).
+3. In "Deploy & Run Transactions", set Environment to
+   Injected Provider - MetaMask, connected to a test network (e.g.
+   Sepolia) with test ETH from a faucet.
+4. Deploy the contract and confirm in MetaMask.
+5. Call addStudent("Alice", 20, 85) a few times with different data -
+   each call is a transaction that costs gas because it writes to
+   storage (students.push(...)).
+6. Call getStudent(0) or getAllStudents() - these are view
+   functions and are free when called directly (no gas, no
+   transaction).
+
+What to observe
+---------------
+
+- Compare the gas cost of addStudent (storage write) against the
+  zero-cost reads from getStudent / getAllStudents (storage read
+  only, no state change).
+- Adding a string field (name) is more expensive than fixed-size
+  fields (uint256), since dynamic types take extra storage slots -
+  note this in the gas values reported by Remix/MetaMask.
+
+Viva Questions & Answers
+------------------------
+
+Q1. What is a struct in Solidity, and why use one here instead of separate arrays for id, name, age, marks?
+A struct groups related fields into a single custom type, so one StudentRecord holds all of a student's data together. Using parallel separate arrays (one for ids, one for names, etc.) would be error-prone — you'd have to keep every array in sync manually, whereas a struct array keeps each student's data atomically bundled.
+
+Q2. What's the difference between a dynamic array and a fixed-size array in Solidity?
+A dynamic array (like StudentRecord[] students) can grow or shrink at runtime via push/pop. A fixed-size array (e.g. uint256[10]) has its length baked in at compile time and cannot change. Dynamic arrays are needed here since the number of students isn't known in advance.
+
+Q3. Why does addStudent cost gas but getStudent doesn't (when called directly)?
+addStudent writes new data to contract storage (students.push(...)), which permanently changes the blockchain's state and must be processed via a mined/validated transaction — this costs gas. getStudent is a view function; it only reads existing storage without changing it, so it can be answered locally by a node for free.
+
+Q4. What is the difference between memory and storage in Solidity?
+storage refers to persistent, on-chain data (expensive to read/write, lives forever on the blockchain). memory is temporary data that exists only during a function's execution (cheaper, discarded afterward) — getStudent returns a memory copy of a storage struct so the caller gets the data without accidentally creating a persistent reference.
+
+Q5. Why is storing a string field more expensive than a uint256 field?
+string is a dynamically-sized type — Solidity has to handle it in variable-length storage slots (potentially using multiple 32-byte slots depending on length), while uint256 always fits in exactly one fixed 32-byte slot — the extra bookkeeping and potential extra slots for dynamic types makes them costlier to store.
+
+Q6. What does students.push(...) do internally?
+It appends a new element to the end of the dynamic array, automatically growing the array's length by one and writing the new struct's fields into fresh storage slots — this storage expansion is part of why addStudent consumes a meaningful amount of gas.
+
+Q7. Why does getStudent include a require(id < students.length, ...) check?
+To prevent out-of-bounds access — without this check, requesting a non-existent id could either revert with a confusing low-level error or (in older Solidity patterns) behave unpredictably; the explicit check gives a clear, intentional error message instead.
+
+Q8. What's the benefit of getAllStudents() returning the entire array at once, versus looping and calling getStudent many times?
+Returning the whole array in a single call is far more gas/time-efficient for the caller (especially an off-chain frontend) than making many individual view calls — though view calls are "free" individually, each round-trip still has overhead, so batching the read is more efficient.
+
+Q9. Why is gas cost deterministic and predictable for a given operation, rather than varying randomly?
+Every EVM (Ethereum Virtual Machine) opcode has a fixed, pre-defined gas cost (e.g. SSTORE for storage writes is expensive, ADD is cheap) — since a transaction's exact sequence of operations is known once code runs, the total gas consumed is deterministic given the same inputs and starting state.
+
+Q10. What's the difference between "gas used" and "transaction fee"?
+Gas used is the amount of computational work consumed (measured in gas units). Transaction fee is the actual cost paid: gas used × gas price (gas price being how much the sender is willing to pay per unit of gas, in gwei) — the same operation can have the same gas used but a different fee depending on current network gas prices.

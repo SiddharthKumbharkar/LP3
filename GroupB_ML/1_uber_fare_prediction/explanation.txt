@@ -1,0 +1,66 @@
+ASSIGNMENT 1 — UBER RIDE FARE PREDICTION
+========================================
+
+Problem Statement
+-----------------
+
+Predict the price of the Uber ride from a given pickup point to the agreed drop-off location.
+1. Pre-process the dataset.
+2. Identify outliers.
+3. Check the correlation.
+4. Implement linear regression and random forest regression models. Evaluate the models and compare their respective scores like R2, RMSE, etc.
+
+Dataset: Uber Fares Dataset (Kaggle) (https://www.kaggle.com/datasets/yasserh/uber-fares-dataset)
+
+Explanation
+-----------
+
+1. Pre-processing (preprocess)
+- Drops rows with missing values.
+- Filters out invalid latitude/longitude values (outside -180 to 180).
+- Computes distance_km between pickup and drop-off coordinates using the Haversine formula (great-circle distance on a sphere — accounts for the Earth's curvature, unlike simple Euclidean distance on lat/long).
+- Removes rows with non-positive fare or distance.
+
+2. Outlier detection (remove_outliers_iqr)
+Uses the IQR (Interquartile Range) method: compute Q1 (25th percentile) and Q3 (75th percentile), then anything below Q1 - 1.5×IQR or above Q3 + 1.5×IQR is flagged as an outlier and removed. Applied to both fare_amount and distance_km. Box plots are drawn before/after to visualize the effect.
+
+3. Correlation check
+A correlation matrix is computed between fare_amount, distance_km, and passenger_count, visualized as a heatmap. distance_km should show a strong positive correlation with fare_amount (makes physical sense — longer rides cost more), while passenger_count typically shows weak correlation.
+
+4. Model training & comparison
+- Linear Regression — fits a straight-line relationship between features (distance_km, passenger_count) and the target (fare_amount).
+- Random Forest Regression — an ensemble of decision trees; each tree is trained on a random subset of data/features, and predictions are averaged, capturing non-linear relationships that linear regression cannot.
+- Both are evaluated using R² (how much variance in fare is explained by the model; closer to 1 is better) and RMSE (Root Mean Squared Error — average prediction error in the same units as fare; lower is better).
+
+Viva Questions & Answers
+------------------------
+
+Q1. Why use the Haversine formula instead of simple Euclidean distance for lat/long coordinates?
+Latitude/longitude are coordinates on a sphere, not a flat plane — Euclidean distance on raw degrees doesn't correspond to actual physical distance. Haversine accounts for the Earth's curvature to give accurate real-world distance in kilometers.
+
+Q2. What is the IQR method and why is it used for outlier detection?
+It defines "normal" values as those within [Q1 - 1.5×IQR, Q3 + 1.5×IQR], where IQR = Q3 - Q1. It's robust to extreme values (unlike mean/standard-deviation-based methods) because it's based on percentiles, making it a standard, simple way to flag anomalies like a $500 fare for a 1 km ride.
+
+Q3. What does a correlation coefficient close to 1 between distance and fare mean?
+It means the two variables move together strongly and linearly — as distance increases, fare increases proportionally, which is expected for ride pricing.
+
+Q4. Why use both Linear Regression and Random Forest instead of just one model?
+To compare a simple, interpretable linear model against a more flexible, non-linear ensemble model — this shows whether the fare-distance relationship is adequately linear or whether a more complex model captures patterns better (reflected in the R²/RMSE comparison).
+
+Q5. What do R² and RMSE each tell you, and how do you interpret them?
+R² (0 to 1) indicates the proportion of variance in the target explained by the model — higher is better. RMSE measures average prediction error in the target's own units (dollars, here) — lower is better. A model can have decent R² but still have a practically large RMSE depending on the scale of the data.
+
+Q6. Why might Random Forest sometimes score worse than Linear Regression here?
+If the true relationship between distance and fare is close to linear (as pricing usually is — roughly $X per km plus a base fare), a Random Forest can overfit to noise in the training data and generalize slightly worse than a simple linear model, especially with limited features.
+
+Q7. Why split the data into train and test sets instead of evaluating on all the data?
+Evaluating on data the model was trained on would overestimate performance (the model has already "seen" the answers) — a held-out test set measures how well the model generalizes to new, unseen rides.
+
+Q8. What would happen if outliers were not removed before training?
+Extreme values (e.g. a wildly mispriced fare) would disproportionately pull the regression line/trees toward fitting those anomalies, degrading prediction accuracy on normal, typical rides.
+
+Q9. Why is passenger_count only weakly correlated with fare?
+Fare is primarily driven by trip distance (and time/surge pricing), not how many passengers are in the car — Uber doesn't charge significantly more per additional passenger for a standard ride.
+
+Q10. What additional features could improve this model in a real-world setting?
+Time of day / day of week (traffic, surge pricing), weather conditions, actual route distance (vs straight-line distance), and pickup/drop-off zone/borough.

@@ -1,0 +1,84 @@
+ASSIGNMENT 3 - BANK ACCOUNT SMART CONTRACT
+==========================================
+
+Problem Statement
+-----------------
+
+Write a smart contract on a test network, for Bank account of a customer for following operations: Deposit money, Withdraw Money, Show balance.
+
+Explanation
+-----------
+
+Bank.sol implements a simple per-account bank with deposit, withdraw,
+and showBalance, using a mapping(address => uint256) so every wallet
+has its own independent balance.
+
+- mapping(address => uint256) private balances — a key-value store built into Solidity, here mapping each wallet address to its own balance. Every address automatically "has" an entry (defaulting to 0) without needing to be explicitly initialized.
+- deposit() external payable — payable allows the function to receive Ether. msg.value is the amount of Ether sent with the call; it's added to balances[msg.sender], where msg.sender is whoever called the function. A require guards against zero-value deposits.
+- withdraw(uint256 amount) — checks the caller has sufficient balance, deducts it, then sends Ether back using a low-level .call{value: amount}(""), checking the success flag. The balance is deducted before the external transfer (a defensive ordering known as the checks-effects-interactions pattern) to guard against re-entrancy attacks.
+- showBalance() external view — a view function; it only reads state and doesn't modify it, so calling it directly from outside costs no gas.
+- Events (Deposited, Withdrawn) — emitted on successful operations so off-chain applications (like a web frontend) can listen for and log these actions cheaply, without needing to poll contract state.
+
+How to deploy (Remix + MetaMask on a test network)
+--------------------------------------------------
+
+1. Open Remix IDE (https://remix.ethereum.org).
+2. Create Bank.sol and paste the contract contents.
+3. Compile with the Solidity compiler (0.8.19 or compatible), under the
+   "Solidity Compiler" tab.
+4. In "Deploy & Run Transactions":
+   - Environment: Injected Provider - MetaMask.
+   - Make sure MetaMask is connected to a test network (e.g. Sepolia)
+     and the account has test ETH from a faucet.
+   - Click Deploy and confirm the transaction in MetaMask.
+5. Interact with the deployed contract:
+   - deposit - set the "Value" field (e.g. 0.01 ether) before
+     clicking the button, since it is a payable function.
+   - withdraw - enter an amount in wei and click the button.
+   - showBalance - call (free, no gas) to read your balance.
+
+What to observe
+---------------
+
+- Each state-changing call (deposit, withdraw) costs gas and
+  shows a transaction fee (gas used x gas price) in MetaMask before
+  you confirm it.
+- showBalance is a view function, so calling it does not cost gas
+  when called directly (it only costs gas if invoked from inside
+  another transaction).
+- Record the gas used for each operation and compare it across
+  deposit vs. withdraw to see how require checks and storage writes
+  affect cost.
+
+Viva Questions & Answers
+------------------------
+
+Q1. What is a smart contract?
+Self-executing code deployed on a blockchain that runs exactly as written, without a central authority — once deployed, its logic is immutable and its execution is enforced by the blockchain network's consensus rules.
+
+Q2. What is msg.sender and msg.value?
+msg.sender is the address that called the current function (the caller's wallet). msg.value is the amount of Ether (in wei) sent along with the function call — only meaningful for payable functions.
+
+Q3. Why is deposit() marked payable but showBalance() is not?
+payable allows a function to receive Ether as part of the call. deposit needs to accept Ether, so it must be payable. showBalance only reads data and never needs to receive funds, so it isn't (and shouldn't be) payable.
+
+Q4. What is gas, and why does every state-changing transaction cost it?
+Gas is the unit measuring computational work on Ethereum. Every operation (storage write, computation, etc.) consumes gas, and the caller pays gas used × gas price as the transaction fee — this prevents infinite loops/spam by making computation costly, and compensates miners/validators for processing the transaction.
+
+Q5. Why does showBalance() not cost gas when called directly?
+It's declared view, meaning it only reads blockchain state without modifying it. Calls that don't change state can be answered locally by a node without needing network-wide consensus/execution, so they're free when called directly (not as part of a state-changing transaction).
+
+Q6. What is re-entrancy, and how does this contract protect against it?
+Re-entrancy is an attack where a malicious contract calls back into withdraw before the first call finishes, potentially draining funds by repeatedly withdrawing before the balance is updated. This contract updates balances[msg.sender] before sending Ether out (checks-effects-interactions pattern), so even if the receiving contract tries to re-enter, the balance is already deducted.
+
+Q7. What does the require statement do, and what happens if its condition fails?
+It checks a condition and, if false, immediately reverts the entire transaction (undoing all state changes made so far in that call) and returns the remaining gas, along with the provided error message.
+
+Q8. What is the purpose of emitting events like Deposited and Withdrawn?
+Events are a cheap way to log data on the blockchain that external applications (dApps, block explorers) can listen for, without needing to store that data in expensive contract storage or constantly poll the contract's state.
+
+Q9. Why use a mapping instead of an array to store balances?
+A mapping gives O(1) direct lookup by address with no iteration needed, and doesn't require tracking which addresses exist — perfectly suited for "lookup balance by owner" access patterns, unlike an array which would need to be searched.
+
+Q10. What would happen if two withdraw transactions from the same account were sent at nearly the same time?
+Ethereum processes transactions sequentially (one block at a time, transactions ordered within a block) — so they aren't truly concurrent. Whichever is processed first will update the balance, and the second transaction's require check will then see the already-reduced balance, failing if there's insufficient funds for the second withdrawal.
