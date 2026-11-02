@@ -1,33 +1,25 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity 0.8.38;
 
-/// Assignment 3: Bank account smart contract - deposit, withdraw, show balance.
-/// Deploy on a test network (e.g. Sepolia via Remix + MetaMask) and observe
-/// the gas cost and transaction fee for each operation.
+// C1: Bank account - deposit money, withdraw money, show balance
 contract Bank {
-    mapping(address => uint256) private balances;
+    mapping(address => uint256) balances;   // each customer's balance, in wei
 
-    event Deposited(address indexed account, uint256 amount, uint256 newBalance);
-    event Withdrawn(address indexed account, uint256 amount, uint256 newBalance);
-
-    function deposit() external payable {
-        require(msg.value > 0, "Deposit amount must be greater than zero");
+    function deposit() public payable {
+        require(msg.value > 0, "Deposit must be greater than 0");
         balances[msg.sender] += msg.value;
-        emit Deposited(msg.sender, msg.value, balances[msg.sender]);
     }
 
-    function withdraw(uint256 amount) external {
-        require(amount > 0, "Withdraw amount must be greater than zero");
+    function withdraw(uint256 amount) public {
         require(balances[msg.sender] >= amount, "Insufficient balance");
-
         balances[msg.sender] -= amount;
-        (bool success, ) = payable(msg.sender).call{value: amount}("");
-        require(success, "Transfer failed");
 
-        emit Withdrawn(msg.sender, amount, balances[msg.sender]);
+        // Use call instead of transfer, and check if it succeeded
+        (bool success, ) = msg.sender.call{value: amount}("");
+        require(success, "Transfer failed");
     }
 
-    function showBalance() external view returns (uint256) {
+    function getBalance() public view returns (uint256) {
         return balances[msg.sender];
     }
 }
