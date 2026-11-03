@@ -19,10 +19,19 @@ has its own independent balance tracked in wei.
 - getBalance() public view — a view function; it only reads state and doesn't modify it, so calling it directly from outside costs no gas. It returns the balance of whoever calls it (msg.sender), not an arbitrary address.
 - No events are emitted here (unlike some bank contract variants) — the focus of this version is the minimal deposit/withdraw/balance flow.
 
-How to deploy and run on Remix (https://remix.ethereum.org)
+How to deploy and run on Remix with Sepolia + MetaMask
 -------------------------------------------------------------
 
-1. Open Remix IDE in the browser.
+0. One-time MetaMask setup (skip if already done):
+   - Install the MetaMask browser extension and create/import a wallet.
+   - In MetaMask, open the network dropdown (top left) and enable
+     "Show test networks" in Settings > Advanced if Sepolia isn't
+     listed, then select "Sepolia" as the active network.
+   - Get free test ETH: copy your wallet address from MetaMask, visit
+     a Sepolia faucet (e.g. sepoliafaucet.com or the Alchemy/Infura
+     Sepolia faucet), paste your address, and request test ETH. Wait
+     for it to arrive (check the balance in MetaMask).
+1. Open Remix IDE (https://remix.ethereum.org) in the browser.
 2. In the File Explorer (left sidebar), create a new file named Bank.sol
    under contracts/, and paste in the exact code from
    GroupC_Blockchain/3_bank_smart_contract/Bank.sol.
@@ -31,39 +40,49 @@ How to deploy and run on Remix (https://remix.ethereum.org)
    auto-select a compatible 0.8.x version). Click "Compile Bank.sol".
    A green checkmark confirms a clean compile.
 4. Go to the "Deploy & Run Transactions" tab.
-   - Environment: for a quick in-browser test, pick "Remix VM (Cancun)"
-     (no wallet needed, uses fake test accounts with 100 ETH each).
-     For a real test network, pick "Injected Provider - MetaMask" and
-     make sure MetaMask is connected to a test network (e.g. Sepolia)
-     with test ETH from a faucet.
+   - Environment: select "Injected Provider - MetaMask" from the
+     dropdown. MetaMask will pop up asking to connect — approve it.
+     Confirm the network shown next to the Environment dropdown says
+     "Sepolia (11155111)" — if it shows a different network, switch
+     networks inside MetaMask itself, not in Remix.
+   - Account: the dropdown should now show your MetaMask address and
+     its Sepolia ETH balance (e.g. "0x1234...5678 (0.49961 ETH)").
    - Contract: make sure "Bank" is selected in the dropdown next to
      the Deploy button.
-   - Click "Deploy" and confirm the transaction (MetaMask will prompt
-     if using Injected Provider).
+   - Click "Deploy" — MetaMask will pop up a transaction confirmation
+     showing the estimated gas fee; click "Confirm". Wait a few
+     seconds for the transaction to be mined on Sepolia.
 5. Once deployed, the contract appears under "Deployed Contracts" with
    three buttons: deposit, withdraw, getBalance.
    - deposit: in the "Value" field at the top of the Deploy tab
-     (next to the unit dropdown), enter an amount, e.g. 1 and select
-     "Ether" from the unit dropdown, THEN click the deposit button —
-     the value field is what gets sent as msg.value.
+     (next to the unit dropdown), enter a small amount, e.g. 0.01 and
+     select "Ether" from the unit dropdown, THEN click the deposit
+     button — the value field is what gets sent as msg.value. Keep
+     amounts small since this is real (though worthless) Sepolia ETH
+     from a faucet, and you'll want enough left for several calls.
    - withdraw: enter an amount in wei in the withdraw input box
-     (e.g. 500000000000000000 for 0.5 ether) and click withdraw.
+     (e.g. 5000000000000000 for 0.005 ether) and click withdraw.
    - getBalance: click it directly (blue button = view/free call) to
      read your current balance in wei.
-6. To test with a different account, switch the selected account in
-   the "Account" dropdown at the top of the Deploy tab, then call
-   deposit/withdraw/getBalance again — notice each account has its
-   own independent balance.
+6. To test with a different account, switch the active account inside
+   MetaMask itself (or add a second account there), then reselect it
+   in Remix's "Account" dropdown and call deposit/withdraw/getBalance
+   again — notice each account has its own independent balance.
 
 What to observe
 ---------------
 
-- Each state-changing call (deposit, withdraw) shows gas used and a
-  transaction fee (gas used x gas price) in the Remix terminal/console
-  log at the bottom after you confirm it.
+- Each state-changing call (deposit, withdraw) pops up a MetaMask
+  confirmation showing the estimated gas fee in Sepolia ETH; after
+  confirming, the Remix terminal/console log at the bottom shows the
+  transaction hash, gas used, and actual transaction fee.
+- Click the transaction hash link (or copy it) and paste it into
+  https://sepolia.etherscan.io to see the real, permanent transaction
+  record on the Sepolia block explorer — including gas used, gas
+  price, and total fee paid.
 - getBalance is a view function (shown as a blue button in Remix,
   versus orange/red for state-changing functions), so calling it
-  directly costs no gas.
+  directly costs no gas and needs no MetaMask confirmation.
 - Try withdrawing more than your balance — the require check should
   cause the transaction to revert, and Remix will show the error
   message "Insufficient balance" in the console.

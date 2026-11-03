@@ -24,10 +24,19 @@ StudentData.sol stores student records on-chain using:
 - fallback() external payable — a special function that runs automatically when a call is made to this contract that doesn't match any existing function signature (e.g. calling a typo'd function name, or sending data that doesn't decode to a known function).
 - Both receive() and fallback() emit a Received event here, so you can see in the logs which one fired and with what amount.
 
-How to deploy and run on Remix (https://remix.ethereum.org)
+How to deploy and run on Remix with Sepolia + MetaMask
 -------------------------------------------------------------
 
-1. Open Remix IDE in the browser.
+0. One-time MetaMask setup (skip if already done):
+   - Install the MetaMask browser extension and create/import a wallet.
+   - In MetaMask, open the network dropdown (top left) and enable
+     "Show test networks" in Settings > Advanced if Sepolia isn't
+     listed, then select "Sepolia" as the active network.
+   - Get free test ETH: copy your wallet address from MetaMask, visit
+     a Sepolia faucet (e.g. sepoliafaucet.com or the Alchemy/Infura
+     Sepolia faucet), paste your address, and request test ETH. Wait
+     for it to arrive (check the balance in MetaMask).
+1. Open Remix IDE (https://remix.ethereum.org) in the browser.
 2. In the File Explorer (left sidebar), create a new file named
    StudentData.sol under contracts/, and paste in the exact code
    from GroupC_Blockchain/4_student_data_contract/StudentData.sol.
@@ -36,11 +45,17 @@ How to deploy and run on Remix (https://remix.ethereum.org)
    version. Click "Compile StudentData.sol" and confirm the green
    checkmark.
 4. Go to the "Deploy & Run Transactions" tab.
-   - Environment: "Remix VM (Cancun)" for a quick in-browser test
-     (no wallet needed), or "Injected Provider - MetaMask" connected
-     to a test network (e.g. Sepolia) with test ETH from a faucet.
+   - Environment: select "Injected Provider - MetaMask" from the
+     dropdown. MetaMask will pop up asking to connect — approve it.
+     Confirm the network shown next to the Environment dropdown says
+     "Sepolia (11155111)" — if it shows a different network, switch
+     networks inside MetaMask itself, not in Remix.
+   - Account: the dropdown should now show your MetaMask address and
+     its Sepolia ETH balance.
    - Contract: make sure "StudentData" is selected in the dropdown.
-   - Click "Deploy" and confirm.
+   - Click "Deploy" — MetaMask will pop up a transaction confirmation
+     showing the estimated gas fee; click "Confirm". Wait a few
+     seconds for the transaction to be mined on Sepolia.
 5. Once deployed, under "Deployed Contracts" you'll see addStudent,
    getStudent, getCount, and the contract's address.
    - addStudent: fill in rollNo (e.g. 1), name (e.g. "Alice"), and
@@ -56,19 +71,28 @@ How to deploy and run on Remix (https://remix.ethereum.org)
 6. To trigger receive()/fallback(): in the "Deploy & Run Transactions"
    tab, find the deployed contract's address, copy it, then use the
    "Low level interactions" section at the bottom of the deployed
-   contract card — enter a Value (e.g. 1 ether) in the top "Value"
-   field, leave CALLDATA empty, and click the red "Transact" button
-   next to the contract's low-level interaction box. Since there's no
-   matching function and no data, this triggers receive(). Check the
-   logs in the Remix terminal to see the Received event fire with
-   how = "receive".
+   contract card — enter a Value (e.g. 0.001 ether, to keep the real
+   Sepolia ETH spend small) in the top "Value" field, leave CALLDATA
+   empty, and click the red "Transact" button next to the contract's
+   low-level interaction box. MetaMask will pop up to confirm this
+   transfer. Since there's no matching function and no data, this
+   triggers receive(). Check the logs in the Remix terminal (or the
+   transaction on Sepolia Etherscan) to see the Received event fire
+   with how = "receive".
 
 What to observe
 ---------------
 
+- Each state-changing call (addStudent, or the low-level transfer
+  that triggers receive) pops up a MetaMask confirmation showing the
+  estimated gas fee in Sepolia ETH; after confirming, the Remix
+  console shows the transaction hash, gas used, and actual fee paid.
+- Paste the transaction hash into https://sepolia.etherscan.io to see
+  the real, permanent record on the Sepolia block explorer, including
+  the emitted event logs.
 - Compare the gas cost of addStudent (storage write) against the
   zero-cost reads from getStudent / getCount (storage read only, no
-  state change).
+  state change, no MetaMask confirmation needed).
 - Adding a string field (name) is more expensive than fixed-size
   fields (uint256), since dynamic types take extra storage slots -
   note this in the gas values reported by Remix.
