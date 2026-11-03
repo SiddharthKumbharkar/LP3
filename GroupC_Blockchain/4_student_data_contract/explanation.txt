@@ -45,10 +45,12 @@ How to deploy and run on Remix with Sepolia + MetaMask
    version. Click "Compile StudentData.sol" and confirm the green
    checkmark.
 4. Go to the "Deploy & Run Transactions" tab.
-   - Environment: select "Injected Provider - MetaMask" from the
-     dropdown. MetaMask will pop up asking to connect — approve it.
-     Confirm the network shown next to the Environment dropdown says
-     "Sepolia (11155111)" — if it shows a different network, switch
+   - Environment: click the dropdown (shows "Remix VM" by default) and
+     select "Browser Extension" (this is the current Remix UI's name
+     for what older versions/guides call "Injected Provider -
+     MetaMask" — same thing). MetaMask will pop up asking to connect —
+     approve it. Confirm the network shown next to the Environment
+     dropdown says "Sepolia" — if it shows a different network, switch
      networks inside MetaMask itself, not in Remix.
    - Account: the dropdown should now show your MetaMask address and
      its Sepolia ETH balance.
@@ -70,15 +72,16 @@ How to deploy and run on Remix with Sepolia + MetaMask
      added so far.
 6. To trigger receive()/fallback(): in the "Deploy & Run Transactions"
    tab, find the deployed contract's address, copy it, then use the
-   "Low level interactions" section at the bottom of the deployed
-   contract card — enter a Value (e.g. 0.001 ether, to keep the real
-   Sepolia ETH spend small) in the top "Value" field, leave CALLDATA
-   empty, and click the red "Transact" button next to the contract's
-   low-level interaction box. MetaMask will pop up to confirm this
-   transfer. Since there's no matching function and no data, this
-   triggers receive(). Check the logs in the Remix terminal (or the
-   transaction on Sepolia Etherscan) to see the Received event fire
-   with how = "receive".
+   "Low level interaction" section at the bottom of the deployed
+   contract card — the Value field there only accepts whole numbers,
+   not decimals, even on Ether, so keep the unit on "wei" and type a
+   small whole number instead, e.g. 1000000000000000 for 0.001 ether
+   (to keep the real Sepolia ETH spend small). Leave CALLDATA empty,
+   and click the "Transact" button next to the low-level interaction
+   box. MetaMask will pop up to confirm this transfer. Since there's
+   no matching function and no data, this triggers receive(). Check
+   the logs in the Remix terminal (or the transaction on Sepolia
+   Etherscan) to see the Received event fire with how = "receive".
 
 What to observe
 ---------------

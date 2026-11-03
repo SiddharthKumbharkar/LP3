@@ -40,10 +40,12 @@ How to deploy and run on Remix with Sepolia + MetaMask
    auto-select a compatible 0.8.x version). Click "Compile Bank.sol".
    A green checkmark confirms a clean compile.
 4. Go to the "Deploy & Run Transactions" tab.
-   - Environment: select "Injected Provider - MetaMask" from the
-     dropdown. MetaMask will pop up asking to connect — approve it.
-     Confirm the network shown next to the Environment dropdown says
-     "Sepolia (11155111)" — if it shows a different network, switch
+   - Environment: click the dropdown (shows "Remix VM" by default) and
+     select "Browser Extension" (this is the current Remix UI's name
+     for what older versions/guides call "Injected Provider -
+     MetaMask" — same thing). MetaMask will pop up asking to connect —
+     approve it. Confirm the network shown next to the Environment
+     dropdown says "Sepolia" — if it shows a different network, switch
      networks inside MetaMask itself, not in Remix.
    - Account: the dropdown should now show your MetaMask address and
      its Sepolia ETH balance (e.g. "0x1234...5678 (0.49961 ETH)").
@@ -54,14 +56,16 @@ How to deploy and run on Remix with Sepolia + MetaMask
      seconds for the transaction to be mined on Sepolia.
 5. Once deployed, the contract appears under "Deployed Contracts" with
    three buttons: deposit, withdraw, getBalance.
-   - deposit: in the "Value" field at the top of the Deploy tab
-     (next to the unit dropdown), enter a small amount, e.g. 0.01 and
-     select "Ether" from the unit dropdown, THEN click the deposit
-     button — the value field is what gets sent as msg.value. Keep
-     amounts small since this is real (though worthless) Sepolia ETH
-     from a faucet, and you'll want enough left for several calls.
+   - deposit: the "Value" field only accepts whole numbers, not
+     decimals, even when the unit is set to Ether — so keep the unit
+     dropdown on "wei" and type the equivalent whole number instead,
+     e.g. 1000000000000000 for 0.001 ether (Ether amount x 10^18 =
+     wei). Then click the deposit button — the value field is what
+     gets sent as msg.value. Keep amounts small since this is real
+     (though worthless) Sepolia ETH from a faucet, and you'll want
+     enough left for several calls.
    - withdraw: enter an amount in wei in the withdraw input box
-     (e.g. 5000000000000000 for 0.005 ether) and click withdraw.
+     (e.g. 500000000000000 for 0.0005 ether) and click withdraw.
    - getBalance: click it directly (blue button = view/free call) to
      read your current balance in wei.
 6. To test with a different account, switch the active account inside
